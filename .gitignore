@@ -1,2 +1,4 @@
 .vscode
 testFile*
+node_modules
+out/*

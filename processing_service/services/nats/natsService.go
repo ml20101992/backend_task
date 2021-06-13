@@ -87,5 +87,10 @@ func ListenToMessages() {
 }
 
 func respondToMessage(connection *nats.EncodedConn, outMsg OutgoingMessage) {
-	connection.Publish(CHANNEL, outMsg)
+	fmt.Println("Sending response")
+	err := connection.Publish(CHANNEL, outMsg)
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
