@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"mateo/service/services/fileio"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFileSave(t *testing.T) {
@@ -11,7 +13,9 @@ func TestFileSave(t *testing.T) {
 	savePath := "../../"
 	originalName := "testFile"
 
-	fileio.SaveFile(originalName, savePath, file)
+	result := fileio.SaveFile(originalName, savePath, file)
+
+	assert.True(t, result.Success)
 
 	fmt.Println("done")
 }
