@@ -16,7 +16,9 @@ func TestBoxExtraction(t *testing.T) {
 		panic(err)
 	}
 
-	boxes := processing.GetFileBoxes(data)
+	boxes, err := processing.GetFileBoxes(data)
+
+	assert.True(t, err == nil)
 
 	for index, data := range boxes {
 		fmt.Print(fmt.Sprintf("Index: %d, BoxType: %s", index, data.BoxType.Name()))
@@ -26,4 +28,18 @@ func TestBoxExtraction(t *testing.T) {
 	assert.Len(t, boxes, 6)
 
 	println("Done.")
+}
+
+func TestGetInitSegmentAsBytes(t *testing.T) {
+	data, err := ioutil.ReadFile("/home/mateo/uniqcast_exercise/video.mp4")
+
+	if err != nil {
+		panic(err)
+	}
+
+	bytes, err := processing.GetInitSegmentAsBytes(data)
+
+	assert.True(t, err == nil)
+
+	assert.NotEmpty(t, bytes)
 }
