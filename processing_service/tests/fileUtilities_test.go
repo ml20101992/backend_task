@@ -13,9 +13,10 @@ func TestFileSave(t *testing.T) {
 	savePath := "../../"
 	originalName := "testFile"
 
-	result := fileio.SaveFile(originalName, savePath, file)
+	result, err := fileio.SaveFile(originalName, savePath, file)
 
-	assert.True(t, result.Success)
+	assert.True(t, err == nil)
+	assert.False(t, result == "")
 
 	fmt.Println("done")
 }

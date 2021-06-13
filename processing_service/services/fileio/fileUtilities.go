@@ -6,21 +6,15 @@ import (
 	"time"
 )
 
-type FileSaveStatus struct {
-	Success bool
-	Err error
-	Path string
-}
-
-func SaveFile(originalFileName, path string, file []byte) FileSaveStatus{
+func SaveFile(originalFileName, path string, file []byte) (string, error) {
 	savePath := fmt.Sprintf("%s/%s-%d", path, originalFileName, time.Now().Unix())
 	err := ioutil.WriteFile(savePath, file, 0644)
 
 	//there was an error while saving the file
 	if err != nil {
-		return FileSaveStatus{Success: false, Err: err}
+		return "", err
 	} else {
-		return FileSaveStatus{Success: true, Path: savePath}
+		return savePath, nil
 	}
 
 }
