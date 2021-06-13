@@ -1,8 +1,10 @@
 package nats
 
 import (
+	"fmt"
 	"mateo/service/services/fileio"
 	"mateo/service/services/processing"
+	"sync"
 
 	"github.com/nats-io/nats.go"
 )
@@ -24,7 +26,7 @@ type OutgoingMessage struct {
 
 //Function used to establish connection to NATS server and to set EncodedConn
 func connectToNats() *nats.EncodedConn {
-	nc, err := nats.Connect(CONN_STRING)
+	nc, err := nats.Connect(nats.DefaultURL)
 
 	if err != nil {
 		panic(err)
@@ -43,7 +45,11 @@ func connectToNats() *nats.EncodedConn {
 func ListenToMessages() {
 	connection := connectToNats()
 
-	connection.Subscribe("fileChannel", func(im *IncomingMessage) {
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+
+	if _, err := connection.Subscribe("fileChannel", func(im *IncomingMessage) {
+		fmt.Println("Message Recieved...")
 		//get the init segment in byte format
 		bytes, err := processing.GetInitSegmentAsBytes(im.FileData)
 
@@ -55,24 +61,29 @@ func ListenToMessages() {
 			outMsg.Error = err.Error()
 			outMsg.Success = false
 			respondToMessage(connection, outMsg)
-			return
+		} else {
+			//check if there were errors with saving
+			path, err := fileio.SaveFile(im.FileName, OUTPUT_PATH, bytes)
+			if err != nil {
+				//if there were errors, respond
+				outMsg.Error = err.Error()
+				outMsg.Success = false
+				respondToMessage(connection, outMsg)
+			} else {
+				//everything is fine, respond to message
+				outMsg.Success = true
+				outMsg.Path = path
+				respondToMessage(connection, outMsg)
+			}
+			connection.Close()
+			wg.Done()
 		}
+	}); err != nil {
+		panic(err)
+	}
 
-		//check if there were errors with saving
-		path, err := fileio.SaveFile(im.FileName, OUTPUT_PATH, bytes)
-		if err != nil {
-			//if there were errors, respond
-			outMsg.Error = err.Error()
-			outMsg.Success = false
-			respondToMessage(connection, outMsg)
-			return
-		}
-
-		outMsg.Success = true
-		outMsg.Path = path
-		respondToMessage(connection, outMsg)
-
-	})
+	fmt.Println("Waiting for messages")
+	wg.Wait()
 }
 
 func respondToMessage(connection *nats.EncodedConn, outMsg OutgoingMessage) {

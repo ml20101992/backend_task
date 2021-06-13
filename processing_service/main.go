@@ -1,7 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"mateo/service/services/nats"
+)
 
 func main() {
-	fmt.Println("test")
+	fmt.Println("Starting Microservice")
+
+	for {
+		nats.ListenToMessages()
+	}
 }
